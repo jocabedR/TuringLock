@@ -21,18 +21,28 @@ function analyzer(text, count){
         var instruction = words[0];
         var offset;
         var aux;
+        var register;
 
         if(instruction[0]==="j"){
-            offset = words[2];
-            aux = jump(count, offset, text.length-1);
+            
+            if(instruction=="jmp" ){
+                offset = words[1];
+                aux = jump(count, offset, text.length-1);
+                console.log("instruction ="+instruction+", offsets="+offset);
+            } else{
+                offset = words[2];
+                console.log("offset="+offset);
+                register = registerValue(words[1].charAt(0));
+                console.log("instruction ="+instruction+", register="+words[1].charAt(0)+" registerValue="+register);
+                if(instruction=="jie" && register%2==0) aux = jump(count, offset, text.length-1);
+                else if(instruction=="jio" && register%2==1) aux = jump(count, offset, text.length-1);
+                else aux = count+1; 
+            }
+            
         }else {
             aux = count+1;
         }
-
-        //console.log(aux);
-        analyzer(text, aux);
-
-    
+            analyzer(text, aux);
     }
     else console.log("Program finished. \na = "+a+" b = "+b);
     
@@ -47,4 +57,10 @@ function jump(count, offset, limit){
     else longitudJump = count -longitud;
     if(longitudJump>limit || longitudJump<0) longitudJump = limit;
     return longitudJump;
+}
+
+
+function registerValue(register){
+    if(register == 'a') return a;
+    else return b;
 }
