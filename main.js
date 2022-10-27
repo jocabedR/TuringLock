@@ -1,74 +1,77 @@
-var a = process.argv[3];
-var b = process.argv[4];
+/* app = require("./app");
+
+var a = parseInt(process.argv[3]);
+var b = parseInt(process.argv[4]);
+
+console.log(app.readingFile(process.argv[2])); */
 
 var fs = require('fs')
     , filename = process.argv[2];
 fs.readFile(filename, 'utf8', function(err, data) {
+    var a = parseInt(process.argv[3]);
+    var b = parseInt(process.argv[4]);
     if(err){
       console.error(err);
       return;
     }
     console.log("a = "+a+",b = "+b);
     var lines = data.split(/[\r\n]+/g);
-    analyzer(lines, 0);
+    commandAnalyzer(lines, 0, a, b);
     
  });
 
-function analyzer(text, count){
-    if(count<(text.length-1)){
-        console.log("\n"+count+". "+text[count]);
-        var words = text[count].split(" ");
+function commandAnalyzer(text, counterLine, a, b){
+    if(counterLine<(text.length-1)){
+        console.log("\n"+counterLine+". "+text[counterLine]);
+        var words = text[counterLine].split(" ");
         var instruction = words[0];
         var offset;
         var aux;
-        var register;
+        var value;
 
         if(instruction[0]==="j"){
-            
             if(instruction=="jmp" ){
                 offset = words[1];
-                aux = jumpTo(count, offset, text.length-1);
+                aux = jumpTo(counterLine, offset, text.length-1);
             } else{
                 offset = words[2];
-                register = registerValue(words[1].charAt(0));
-                if(instruction=="jie" && register%2==0) aux = jumpTo(count, offset, text.length-1);
-                else if(instruction=="jio" && register%2==1) aux = jumpTo(count, offset, text.length-1);
-                else aux = count+1;
+                value = getRegisterValue(words[1].charAt(0), a, b);
+                if(instruction=="jie" && value%2==0) aux = jumpTo(counterLine, offset, text.length-1);
+                else if(instruction=="jio" && value==1) aux = jumpTo(counterLine, offset, text.length-1);
+                else aux = counterLine+1;
             }
         } else {
-            aux = count+1;
-            if (words[1] == "a") a =  operations(instruction, a);
-            else b = operations(instruction,b);
+            aux = counterLine+1;
+            if (words[1] == "a") a =  setRegisterValue(instruction, a);
+            else b = setRegisterValue(instruction, b);
         }
-            analyzer(text, aux);
+
+        console.log("Jump to: "+aux);
+        console.log("a = "+a+",b = "+b);
+        commandAnalyzer(text, aux, a, b);
     }
     else console.log("Program finished. \na = "+a+" b = "+b);
     
 }
 
-function jumpTo(count, offset, limit){
+function jumpTo(counterLine, offset, limit){
     var longitudJump;
     var direction = offset.charAt(0)
     var longitud = parseInt(offset.substring(1,offset.length));
 
-    if(direction === '+') longitudJump = count + longitud;
-    else longitudJump = count -longitud;
+    if(direction === '+') longitudJump = counterLine + longitud;
+    else longitudJump = counterLine -longitud;
     if(longitudJump>limit || longitudJump<0) longitudJump = limit;
     return longitudJump;
 }
 
 
-function registerValue(register){
+function getRegisterValue(register, a, b){
     if(register == 'a') return a;
     else return b;
 }
 
-function registerValue(register){
-    if(register == 'a') return a;
-    else return b;
-}
-
-function operations(operator, register){
+function setRegisterValue(operator, register){
     var response;
     switch(operator){
         case "hlf":
