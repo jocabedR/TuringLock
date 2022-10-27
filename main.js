@@ -8,7 +8,7 @@ fs.readFile(filename, 'utf8', function(err, data) {
       console.error(err);
       return;
     }
-    console.log("a = "+a+",b = "+b)
+    console.log("a = "+a+",b = "+b);
     var lines = data.split(/[\r\n]+/g);
     analyzer(lines, 0);
     
@@ -16,7 +16,7 @@ fs.readFile(filename, 'utf8', function(err, data) {
 
 function analyzer(text, count){
     if(count<(text.length-1)){
-        console.log(count+". "+text[count]);
+        console.log("\n"+count+". "+text[count]);
         var words = text[count].split(" ");
         var instruction = words[0];
         var offset;
@@ -27,20 +27,18 @@ function analyzer(text, count){
             
             if(instruction=="jmp" ){
                 offset = words[1];
-                aux = jump(count, offset, text.length-1);
-                console.log("instruction ="+instruction+", offsets="+offset);
+                aux = jumpTo(count, offset, text.length-1);
             } else{
                 offset = words[2];
-                console.log("offset="+offset);
                 register = registerValue(words[1].charAt(0));
-                console.log("instruction ="+instruction+", register="+words[1].charAt(0)+" registerValue="+register);
-                if(instruction=="jie" && register%2==0) aux = jump(count, offset, text.length-1);
-                else if(instruction=="jio" && register%2==1) aux = jump(count, offset, text.length-1);
-                else aux = count+1; 
+                if(instruction=="jie" && register%2==0) aux = jumpTo(count, offset, text.length-1);
+                else if(instruction=="jio" && register%2==1) aux = jumpTo(count, offset, text.length-1);
+                else aux = count+1;
             }
-            
-        }else {
+        } else {
             aux = count+1;
+            if (words[1] == "a") a =  operations(instruction, a);
+            else b = operations(instruction,b);
         }
             analyzer(text, aux);
     }
@@ -48,7 +46,7 @@ function analyzer(text, count){
     
 }
 
-function jump(count, offset, limit){
+function jumpTo(count, offset, limit){
     var longitudJump;
     var direction = offset.charAt(0)
     var longitud = parseInt(offset.substring(1,offset.length));
@@ -63,4 +61,25 @@ function jump(count, offset, limit){
 function registerValue(register){
     if(register == 'a') return a;
     else return b;
+}
+
+function registerValue(register){
+    if(register == 'a') return a;
+    else return b;
+}
+
+function operations(operator, register){
+    var response;
+    switch(operator){
+        case "hlf":
+            response = register / 2;
+            break;
+        case "tpl":
+            response = register * 3;
+            break;
+        case "inc":
+                response = register + 1;
+                break;
+    }
+    return response;
 }
